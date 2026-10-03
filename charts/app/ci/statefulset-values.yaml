@@ -1,0 +1,18 @@
+# Judge-shaped: StatefulSet, no Service, egress-only NetworkPolicy, digest pin.
+kind: StatefulSet
+image: { repository: ghcr.io/example/worker, tag: v1.2.3, digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000" }
+args: ["run", "$(NAME)"]
+env:
+  NAME:
+    valueFrom: { fieldRef: { fieldPath: metadata.name } }
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities: { add: ["SYS_PTRACE"] }
+  seccompProfile: { type: Unconfined }
+tolerations: [{ key: workload, operator: Equal, value: judge, effect: NoSchedule }]
+networkPolicy:
+  enabled: true
+  ingress: []
+  egress:
+    - to: [{ podSelector: { matchLabels: { app.kubernetes.io/name: bridge } } }]
+      ports: [{ port: 9999, protocol: TCP }]

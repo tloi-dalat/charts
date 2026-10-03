@@ -1,0 +1,36 @@
+{{- if .Values.migrate.enabled }}
+{{- $name := printf "%s-migrate" (include "app.name" .) | trunc 63 | trimSuffix "-" }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+  annotations:
+    # Runs to completion before ArgoCD touches the workload. If it fails, the
+    # sync stops and the old pods keep serving.
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: {{ .Values.migrate.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.migrate.activeDeadlineSeconds }}
+  template:
+    metadata:
+      # Deliberately NOT the workload's selector labels, so the Service never
+      # routes traffic to a migration pod.
+      labels:
+        app.kubernetes.io/name: {{ $name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      restartPolicy: Never
+      {{- include "app.podCommon" . | nindent 6 }}
+      containers:
+        - name: migrate
+          {{- include "app.containerCommon" . | nindent 10 }}
+          command:
+            {{- toYaml (required "migrate.command is required when migrate.enabled" .Values.migrate.command) | nindent 12 }}
+          {{- with .Values.migrate.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

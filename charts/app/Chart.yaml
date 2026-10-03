@@ -1,0 +1,7 @@
+apiVersion: v2
+name: app
+description: Generic workload chart for TLOI services — one chart, every app; per-app config lives in control-plane values.yaml.
+type: application
+# Bump on ANY change to this chart. Published versions are immutable; the
+# publish workflow refuses to overwrite one.
+version: 0.1.0

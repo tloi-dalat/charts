@@ -1,0 +1,78 @@
+# Defaults for the `app` chart. Every key is overridable from an app's
+# values.yaml in control-plane. Raw Kubernetes structures (probes, volumes,
+# NetworkPolicy rules) are passed through as-is rather than re-invented.
+
+# Resource names default to the Helm release name (e.g. oj-site).
+nameOverride: ""
+
+# Deployment | StatefulSet. Use StatefulSet when each pod needs a stable
+# identity (e.g. judges: oj-judge-0, oj-judge-1).
+kind: Deployment
+replicaCount: 1
+
+image:
+  repository: ""
+  tag: ""          # required; CI bumps this
+  digest: ""       # optional sha256:… — pins the exact image (prd)
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+command: []
+args: []
+
+# Map form, Cake style. A value is either a literal or a {valueFrom: …} map:
+#   env:
+#     LOG__LEVEL: INFO
+#     REDIS__PASSWORD:
+#       valueFrom: { secretKeyRef: { name: oj-secrets, key: REDIS__PASSWORD } }
+env: {}
+envFrom: []
+
+# [{name, containerPort, protocol?}] — also become Service ports when enabled.
+ports: []
+service:
+  enabled: true
+  type: ClusterIP
+
+# Raw probe specs, e.g. { tcpSocket: { port: 8000 }, periodSeconds: 10 }
+probes:
+  liveness: {}
+  readiness: {}
+  startup: {}
+
+resources: {}
+
+podSecurityContext: {}
+securityContext:
+  allowPrivilegeEscalation: false
+
+# No workload here talks to the Kubernetes API. Keeping the token out of the
+# pod matters most for the judge, which runs untrusted code.
+automountServiceAccountToken: false
+terminationGracePeriodSeconds: 30
+strategy: {}              # Deployment only
+nodeSelector: {}
+tolerations: []
+affinity: {}
+podLabels: {}
+podAnnotations: {}
+
+volumes: []               # raw pod volumes
+volumeMounts: []          # raw container volumeMounts
+
+networkPolicy:
+  enabled: false
+  policyTypes: [Ingress, Egress]
+  ingress: []             # raw NetworkPolicyIngressRule list ([] = deny all)
+  egress: []              # raw NetworkPolicyEgressRule list  ([] = deny all)
+
+# Schema migrations as an ArgoCD PreSync hook: runs to completion BEFORE the
+# workload is updated; if it fails, the sync stops and old pods keep serving.
+migrate:
+  enabled: false
+  command: []
+  # 0 on purpose: MySQL DDL isn't transactional, so blindly re-running a
+  # migration that died half-way usually fails differently. Look at the logs.
+  backoffLimit: 0
+  activeDeadlineSeconds: 900
+  resources: {}

@@ -1,0 +1,24 @@
+# Site-shaped: Deployment + Service + probes + migrate hook + valueFrom env.
+image: { repository: ghcr.io/example/web, tag: main-abc1234 }
+replicaCount: 2
+command: ["gunicorn", "app.wsgi:application", "--bind", "0.0.0.0:8000"]
+ports: [{ name: http, containerPort: 8000 }]
+env:
+  LOG__LEVEL: INFO
+  WORKERS: 3
+  FEATURE: true
+  REDIS__PASSWORD:
+    valueFrom: { secretKeyRef: { name: app-secrets, key: REDIS__PASSWORD } }
+envFrom: [{ secretRef: { name: app-secrets } }]
+probes:
+  readiness: { tcpSocket: { port: http }, periodSeconds: 10 }
+resources:
+  requests: { cpu: 100m, memory: 256Mi }
+  limits: { cpu: "1", memory: 512Mi }
+podSecurityContext: { runAsUser: 1000, runAsGroup: 1000, runAsNonRoot: true }
+volumes: [{ name: data, persistentVolumeClaim: { claimName: data } }]
+volumeMounts: [{ name: data, mountPath: /data }]
+strategy: { type: RollingUpdate, rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+migrate:
+  enabled: true
+  command: ["python", "manage.py", "migrate", "--noinput"]
