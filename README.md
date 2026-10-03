@@ -1,8 +1,6 @@
 # charts
 
-Helm charts shared by every TLOI service, published to `oci://ghcr.io/tloi-dalat/charts`.
-This is the TLOI version of Cake's `app-migrate` chart. One generic chart means each app's config in
-control-plane is a short `values.yaml`, not a pile of manifests.
+Helm charts shared by every TLOI service, published to `oci://ghcr.io/tloi-dalat/charts`. One generic chart means each app's config in control-plane is a short `values.yaml`, not a pile of manifests.
 
 ## `app`
 
@@ -23,7 +21,7 @@ Defaults worth knowing:
 - `automountServiceAccountToken: false` and `enableServiceLinks: false` on every pod. Nothing here
   calls the Kubernetes API, and the judge runs untrusted code.
 - `securityContext.allowPrivilegeEscalation: false`.
-- `env` is a **map** (Cake style). Literals become strings, and `{valueFrom: …}` passes through.
+- `env` is a **map**. Literals become strings, and `{valueFrom: …}` passes through.
 - `migrate.backoffLimit: 0`. MySQL DDL isn't transactional, so a migration that died halfway
   shouldn't be blindly re-run. Read the logs.
 

@@ -1,0 +1,82 @@
+# Lint every chart on PRs; on main, publish each chart whose version isn't on
+# GHCR yet to oci://ghcr.io/<owner>/charts/<name>.
+#
+# Published versions are immutable — control-plane pins them, so overwriting
+# one would silently change every app that uses it. If a chart's files changed
+# but its version didn't, publishing fails and asks for a bump.
+name: publish
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: azure/setup-helm@v5
+        with:
+          version: v4.3.0
+      - name: helm lint + render every ci/ values file
+        run: |
+          set -euo pipefail
+          for chart in charts/*/; do
+            helm lint "$chart"
+            for v in "$chart"ci/*.yaml; do
+              [[ -e "$v" ]] || continue
+              echo "::group::${v}"
+              helm lint "$chart" -f "$v"
+              helm template ci "$chart" --namespace ci -f "$v"
+              echo "::endgroup::"
+            done
+          done
+
+  publish:
+    if: github.event_name != 'pull_request'
+    needs: lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: azure/setup-helm@v5
+        with:
+          version: v4.3.0
+      - name: Log in to GHCR
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTOR: ${{ github.actor }}
+        run: echo "$TOKEN" | helm registry login ghcr.io -u "$ACTOR" --password-stdin
+      - name: Package and push
+        env:
+          OWNER: ${{ github.repository_owner }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          repo="oci://ghcr.io/${OWNER,,}/charts"
+          for chart in charts/*/; do
+            name=$(yq '.name' "${chart}Chart.yaml")
+            version=$(yq '.version' "${chart}Chart.yaml")
+            if helm show chart "${repo}/${name}" --version "$version" >/dev/null 2>&1; then
+              if [[ -n "$BEFORE" && "$BEFORE" != 0000000000000000000000000000000000000000 ]] \
+                 && ! git diff --quiet "$BEFORE" HEAD -- "$chart"; then
+                echo "::error::${name} changed but ${version} is already published — bump version in ${chart}Chart.yaml"
+                exit 1
+              fi
+              echo "${name}-${version} already published; skipping"
+              continue
+            fi
+            helm package "$chart" --destination /tmp/pkg
+            helm push "/tmp/pkg/${name}-${version}.tgz" "$repo"
+            echo "Published ${repo}/${name}:${version}" >> "$GITHUB_STEP_SUMMARY"
+          done

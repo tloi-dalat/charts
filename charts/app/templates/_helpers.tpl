@@ -66,7 +66,7 @@ affinity:
 
 {{/* Container fields shared by the workload and the migrate Job. */}}
 {{- define "app.containerCommon" -}}
-image: {{ include "app.image" . }}
+image: {{ include "app.image" . | quote }}
 imagePullPolicy: {{ .Values.image.pullPolicy }}
 {{- with .Values.env }}
 env:
