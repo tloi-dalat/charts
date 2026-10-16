@@ -11,6 +11,7 @@ Renders one workload and what it needs:
 | `Deployment` or `StatefulSet` | always (`kind:`) |
 | `Service` | when `ports` is set and `service.enabled` (default) |
 | `NetworkPolicy` | `networkPolicy.enabled` |
+| `HorizontalPodAutoscaler` | `autoscaling.enabled` (0.2.0+): the workload then has no `spec.replicas`, so ArgoCD doesn't fight the HPA |
 | `Job` (ArgoCD **PreSync** hook) | `migrate.enabled`: runs to completion before the workload updates; on failure the sync stops and old pods keep serving |
 
 All options, with comments, are in [`charts/app/values.yaml`](charts/app/values.yaml). Raw Kubernetes
@@ -28,14 +29,14 @@ Defaults worth knowing:
 ### Use from control-plane
 
 ```yaml
-# clusters/dev/oj/site/kustomization.yaml
+# clusters/dev/online-judge/site/kustomization.yaml
 helmGlobals: { chartHome: /tmp/charts }
 helmCharts:
   - repo: oci://ghcr.io/tloi-dalat/charts
     name: app
     version: 0.1.0          # always pin
-    releaseName: oj-site    # → resource names, Service DNS name
-    namespace: oj
+    releaseName: online-judge-site    # → resource names, Service DNS name
+    namespace: online-judge
     valuesFile: values.yaml
 ```
 

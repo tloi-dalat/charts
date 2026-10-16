@@ -1,0 +1,15 @@
+# Site-shaped Deployment scaled by an HPA: no spec.replicas rendered.
+image: { repository: ghcr.io/example/web, tag: 1.0.0 }
+ports: [{ name: http, containerPort: 8000 }]
+resources:
+  requests: { cpu: 500m, memory: 384Mi }
+  limits: { cpu: "1", memory: 768Mi }
+strategy: { type: RollingUpdate, rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 600

@@ -4,4 +4,4 @@ description: Generic workload chart for TLOI services — one chart, every app; 
 type: application
 # Bump on ANY change to this chart. Published versions are immutable; the
 # publish workflow refuses to overwrite one.
-version: 0.1.0
+version: 0.2.0

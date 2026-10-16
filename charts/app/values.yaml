@@ -8,7 +8,20 @@ nameOverride: ""
 # Deployment | StatefulSet. Use StatefulSet when each pod needs a stable
 # identity (e.g. judges: oj-judge-0, oj-judge-1).
 kind: Deployment
-replicaCount: 1
+replicaCount: 1           # ignored when autoscaling.enabled
+
+# HorizontalPodAutoscaler. When enabled the workload renders WITHOUT
+# spec.replicas, so ArgoCD (selfHeal) never fights the HPA over the count.
+# Utilization targets are % of resources.requests — set requests to what one
+# pod really needs at steady load, or it scales too eagerly / too late.
+# Needs metrics-server (bundled with k3s). Only for stateless workloads.
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: null   # leave null for gunicorn/celery: their memory never drops, so it would only scale up
+  behavior: {}            # raw autoscaling/v2 behavior (scaleUp / scaleDown policies)
 
 image:
   repository: ""
