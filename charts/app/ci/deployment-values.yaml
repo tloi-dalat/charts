@@ -1,4 +1,3 @@
-# Site-shaped: Deployment + Service + probes + migrate hook + valueFrom env.
 image: { repository: ghcr.io/example/web, tag: main-abc1234 }
 replicaCount: 2
 command: ["gunicorn", "app.wsgi:application", "--bind", "0.0.0.0:8000"]

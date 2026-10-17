@@ -7,8 +7,6 @@ metadata:
   labels:
     {{- include "app.labels" . | nindent 4 }}
   annotations:
-    # Runs to completion before ArgoCD touches the workload. If it fails, the
-    # sync stops and the old pods keep serving.
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
@@ -16,8 +14,6 @@ spec:
   activeDeadlineSeconds: {{ .Values.migrate.activeDeadlineSeconds }}
   template:
     metadata:
-      # Deliberately NOT the workload's selector labels, so the Service never
-      # routes traffic to a migration pod.
       labels:
         app.kubernetes.io/name: {{ $name }}
         app.kubernetes.io/instance: {{ .Release.Name }}

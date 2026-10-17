@@ -1,4 +1,3 @@
-{{/* Resource name: the release name unless overridden. */}}
 {{- define "app.name" -}}
 {{- default .Release.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
@@ -26,7 +25,6 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
 {{- end -}}
 {{- end -}}
 
-{{/* env map → list. Literal values are quoted strings; maps pass through (valueFrom). */}}
 {{- define "app.env" -}}
 {{- range $name, $value := .Values.env }}
 - name: {{ $name }}
@@ -38,7 +36,6 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
 {{- end }}
 {{- end -}}
 
-{{/* Pod-level settings shared by the workload and the migrate Job. */}}
 {{- define "app.podCommon" -}}
 automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
 enableServiceLinks: false
@@ -64,7 +61,6 @@ affinity:
 {{- end }}
 {{- end -}}
 
-{{/* Container fields shared by the workload and the migrate Job. */}}
 {{- define "app.containerCommon" -}}
 image: {{ include "app.image" . | quote }}
 imagePullPolicy: {{ .Values.image.pullPolicy }}

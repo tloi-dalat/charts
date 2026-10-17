@@ -1,4 +1,3 @@
-# Judge-shaped: StatefulSet, no Service, egress-only NetworkPolicy, digest pin.
 kind: StatefulSet
 image: { repository: ghcr.io/example/worker, tag: v1.2.3, digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000" }
 args: ["run", "$(NAME)"]
