@@ -42,8 +42,8 @@ helmGlobals: { chartHome: /tmp/charts }
 helmCharts:
   - repo: oci://ghcr.io/tloi-dalat/charts
     name: app
-    version: 0.2.1
-    releaseName: online-judge-site
+    version: 0.3.0
+    releaseName: site
     namespace: online-judge
     valuesFile: values.yaml
 ```
@@ -55,7 +55,5 @@ ArgoCD needs `kustomize.buildOptions: --enable-helm`.
 1. Change the chart and bump `version` in `Chart.yaml`. Published versions are immutable: control-plane pins them.
 2. Add or adjust a `ci/*-values.yaml` file for a new shape; CI lints and renders each one.
 3. Merge. The publish workflow pushes any version not yet on GHCR, and fails if a published version's files
-   changed without a bump.
+   changed without a bump. `ci/` and Markdown files aren't packaged, so changing them needs no bump.
 4. Bump `version` in the control-plane kustomizations that should use it.
-
-The `charts/app` package must be public on GHCR: ArgoCD pulls it without credentials.

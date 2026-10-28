@@ -63,7 +63,7 @@ jobs:
             version=$(yq '.version' "${chart}Chart.yaml")
             if helm show chart "${repo}/${name}" --version "$version" >/dev/null 2>&1; then
               if [[ -n "$BEFORE" && "$BEFORE" != 0000000000000000000000000000000000000000 ]] \
-                 && ! git diff --quiet "$BEFORE" HEAD -- "$chart"; then
+                 && ! git diff --quiet "$BEFORE" HEAD -- "$chart" ":(exclude)${chart}ci" ":(exclude)${chart}**/*.md"; then
                 echo "::error::${name} changed but ${version} is already published — bump version in ${chart}Chart.yaml"
                 exit 1
               fi
