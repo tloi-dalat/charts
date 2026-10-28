@@ -1,5 +1,5 @@
 apiVersion: v2
 name: app
-description: Generic workload chart for TLOI services — one chart, every app; per-app config lives in control-plane values.yaml.
+description: Generic workload chart for TLOI services.
 type: application
-version: 0.2.1
+version: 0.3.0

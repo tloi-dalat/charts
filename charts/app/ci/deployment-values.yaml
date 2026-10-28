@@ -3,11 +3,11 @@ replicaCount: 2
 command: ["gunicorn", "app.wsgi:application", "--bind", "0.0.0.0:8000"]
 ports: [{ name: http, containerPort: 8000 }]
 env:
-  LOG__LEVEL: INFO
+  LOG_LEVEL: INFO
   WORKERS: 3
   FEATURE: true
-  REDIS__PASSWORD:
-    valueFrom: { secretKeyRef: { name: app-secrets, key: REDIS__PASSWORD } }
+  REDIS_PASSWORD:
+    valueFrom: { secretKeyRef: { name: app-secrets, key: REDIS_PASSWORD } }
 envFrom: [{ secretRef: { name: app-secrets } }]
 probes:
   readiness: { tcpSocket: { port: http }, periodSeconds: 10 }
